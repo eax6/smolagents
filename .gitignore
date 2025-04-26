@@ -148,7 +148,7 @@ interpreter_workspace/
 # Archive
 archive/
 savedir/
-output/
+# output/
 tool_output/
 
 # Gradio runtime
