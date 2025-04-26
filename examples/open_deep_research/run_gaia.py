@@ -37,6 +37,7 @@ from smolagents import (
     Model,
     ToolCallingAgent,
 )
+import smolagents.prompts 
 
 
 load_dotenv(override=True)
@@ -115,8 +116,9 @@ def create_agent_team(model: Model, optimized: bool = False):
 
     if optimized:
         print("loading optimized prompts from prompts/code_agent_4o_mini_optimized.yaml and prompts/toolcalling_agent_4o_mini_optimized.yaml")
-        code_agent_prompt = yaml.safe_load(open(f"src/smolagents/prompts/code_agent_4o_mini_optimized.yaml").read())
-        toolcalling_agent_prompt = yaml.safe_load(open(f"src/smolagents/prompts/toolcalling_agent_4o_mini_optimized.yaml").read())
+        prompt_folder = os.path.dirname(smolagents.prompts.__file__)
+        code_agent_prompt = yaml.safe_load(open(f"{prompt_folder}/code_agent_4o_mini_optimized.yaml").read())
+        toolcalling_agent_prompt = yaml.safe_load(open(f"{prompt_folder}/toolcalling_agent_4o_mini_optimized.yaml").read())
     else:
         print("loading original prompts from prompts/code_agent.yaml and prompts/toolcalling_agent.yaml")
         code_agent_prompt = None 
@@ -285,7 +287,7 @@ def main():
             f.result()
 
     # for example in tasks_to_run:
-    #     answer_single_question(example, args.model_id, answers_file, visualizer)
+    #     answer_single_question(example, args.model_id, answers_file, visualizer, args.optimized)
     print("All tasks processed.")
 
 
