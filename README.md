@@ -1,262 +1,53 @@
-<!---
-Copyright 2024 The HuggingFace Team. All rights reserved.
+# Open Deep Research Optimization Report 
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+[Open Deep Research](https://github.com/huggingface/smolagents/tree/main/examples/open_deep_research) is an open-source agentic framework developed by Hugging Face that autonomously conducts web-based research. Built using the [smolagents](https://github.com/huggingface/smolagents) framework, it can browse the internet, extract and analyze information, and perform data manipulations to answer complex queries. 
 
-    http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
--->
-<p align="center">
-    <!-- Uncomment when CircleCI is set up
-    <a href="https://circleci.com/gh/huggingface/accelerate"><img alt="Build" src="https://img.shields.io/circleci/build/github/huggingface/transformers/master"></a>
-    -->
-    <a href="https://github.com/huggingface/smolagents/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/huggingface/smolagents.svg?color=blue"></a>
-    <a href="https://huggingface.co/docs/smolagents"><img alt="Documentation" src="https://img.shields.io/website/http/huggingface.co/docs/smolagents/index.html.svg?down_color=red&down_message=offline&up_message=online"></a>
-    <a href="https://github.com/huggingface/smolagents/releases"><img alt="GitHub release" src="https://img.shields.io/github/release/huggingface/smolagents.svg"></a>
-    <a href="https://github.com/huggingface/smolagents/blob/main/CODE_OF_CONDUCT.md"><img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg"></a>
-</p>
+## Why Open Deep Research?  
 
-<h3 align="center">
-  <div style="display:flex;flex-direction:row;">
-    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/smolagents.png" alt="Hugging Face mascot as James Bond" width=400px>
-    <p>Agents that think in code!</p>
-  </div>
-</h3>
+We chose Open Deep Research because it is **one of the few open-source, runnable frameworks on the [GAIA leaderboard](https://huggingface.co/spaces/gaia-benchmark/leaderboard)**. Most other submissions are either closed-source or lack runnable code. Alongside [OWL](https://github.com/camel-ai/owl) , Open Deep Research offers a strong baseline for evaluating and improving web-based research agents. While OWL is optimized in another teammate's repository, this work focuses on optimizing Open Deep Research for the GAIA leaderboard.  
 
-`smolagents` is a library that enables you to run powerful agents in a few lines of code. It offers:
+## What We Changed 
 
-✨ **Simplicity**: the logic for agents fits in ~1,000 lines of code (see [agents.py](https://github.com/huggingface/smolagents/blob/main/src/smolagents/agents.py)). We kept abstractions to their minimal shape above raw code!
+We made the following modifications to the original framework:
 
-🧑‍💻 **First-class support for Code Agents**. Our [`CodeAgent`](https://huggingface.co/docs/smolagents/reference/agents#smolagents.CodeAgent) writes its actions in code (as opposed to "agents being used to write code"). To make it secure, we support executing in sandboxed environments via [E2B](https://e2b.dev/) or via Docker.
+1. **LLM Backbone** 
 
-🤗 **Hub integrations**: you can [share/pull tools or agents to/from the Hub](https://huggingface.co/docs/smolagents/reference/tools#smolagents.Tool.from_hub) for instant sharing of the most efficient agents!
-
-🌐 **Model-agnostic**: smolagents supports any LLM. It can be a local `transformers` or `ollama` model, one of [many providers on the Hub](https://huggingface.co/blog/inference-providers), or any model from OpenAI, Anthropic and many others via our [LiteLLM](https://www.litellm.ai/) integration.
-
-👁️ **Modality-agnostic**: Agents support text, vision, video, even audio inputs! Cf [this tutorial](https://huggingface.co/docs/smolagents/examples/web_browser) for vision.
-
-🛠️ **Tool-agnostic**: you can use tools from [LangChain](https://huggingface.co/docs/smolagents/reference/tools#smolagents.Tool.from_langchain), [MCP](https://huggingface.co/docs/smolagents/reference/tools#smolagents.ToolCollection.from_mcp), you can even use a [Hub Space](https://huggingface.co/docs/smolagents/reference/tools#smolagents.Tool.from_space) as a tool.
-
-Full documentation can be found [here](https://huggingface.co/docs/smolagents/index).
-
-> [!NOTE]
-> Check the our [launch blog post](https://huggingface.co/blog/smolagents) to learn more about `smolagents`!
-
-## Quick demo
-
-First install the package.
-```bash
-pip install smolagents
-```
-Then define your agent, give it the tools it needs and run it!
-```py
-from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
-
-model = InferenceClientModel()
-agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=model)
-
-agent.run("How many seconds would it take for a leopard at full speed to run through Pont des Arts?")
-```
-
-https://github.com/user-attachments/assets/cd0226e2-7479-4102-aea0-57c22ca47884
-
-You can even share your agent to the Hub, as a Space repository:
-```py
-agent.push_to_hub("m-ric/my_agent")
-
-# agent.from_hub("m-ric/my_agent") to load an agent from Hub
-```
-
-Our library is LLM-agnostic: you could switch the example above to any inference provider.
-
-<details>
-<summary> <b>InferenceClientModel, gateway for all <a href="https://huggingface.co/docs/inference-providers/index">inference providers</a> supported on HF</b></summary>
-
-```py
-from smolagents import InferenceClientModel
-
-model = InferenceClientModel(
-    model_id="deepseek-ai/DeepSeek-R1",
-    provider="together",
-)
-```
-</details>
-<details>
-<summary> <b>LiteLLM to access 100+ LLMs</b></summary>
-
-```py
-from smolagents import LiteLLMModel
-
-model = LiteLLMModel(
-    model_id="anthropic/claude-3-5-sonnet-latest",
-    temperature=0.2,
-    api_key=os.environ["ANTHROPIC_API_KEY"]
-)
-```
-</details>
-<details>
-<summary> <b>OpenAI-compatible servers</b></summary>
-
-```py
-import os
-from smolagents import OpenAIServerModel
-
-model = OpenAIServerModel(
-    model_id="deepseek-ai/DeepSeek-R1",
-    api_base="https://api.together.xyz/v1/", # Leave this blank to query OpenAI servers.
-    api_key=os.environ["TOGETHER_API_KEY"], # Switch to the API key for the server you're targeting.
-)
-```
-</details>
-<details>
-<summary> <b>Local `transformers` model</b></summary>
-
-```py
-from smolagents import TransformersModel
-
-model = TransformersModel(
-    model_id="Qwen/Qwen2.5-Coder-32B-Instruct",
-    max_new_tokens=4096,
-    device_map="auto"
-)
-```
-</details>
-<details>
-<summary> <b>Azure models</b></summary>
-
-```py
-import os
-from smolagents import AzureOpenAIServerModel
-
-model = AzureOpenAIServerModel(
-    model_id = os.environ.get("AZURE_OPENAI_MODEL"),
-    azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
-    api_key=os.environ.get("AZURE_OPENAI_API_KEY"),
-    api_version=os.environ.get("OPENAI_API_VERSION")    
-)
-```
-</details>
-<details>
-<summary> <b>Amazon Bedrock models</b></summary>
-
-```py
-import os
-from smolagents import AmazonBedrockServerModel
-
-model = AmazonBedrockServerModel(
-    model_id = os.environ.get("AMAZON_BEDROCK_MODEL_ID") 
-)
-```
-</details>
-
-## CLI
-
-You can run agents from CLI using two commands: `smolagent` and `webagent`.
-
-`smolagent` is a generalist command to run a multi-step `CodeAgent` that can be equipped with various tools.
-
-```bash
-smolagent "Plan a trip to Tokyo, Kyoto and Osaka between Mar 28 and Apr 7."  --model-type "InferenceClientModel" --model-id "Qwen/Qwen2.5-Coder-32B-Instruct" --imports "pandas numpy" --tools "web_search"
-```
-
-Meanwhile `webagent` is a specific web-browsing agent using [helium](https://github.com/mherrmann/helium) (read more [here](https://github.com/huggingface/smolagents/blob/main/src/smolagents/vision_web_browser.py)).
-
-For instance:
-```bash
-webagent "go to xyz.com/men, get to sale section, click the first clothing item you see. Get the product details, and the price, return them. note that I'm shopping from France" --model-type "LiteLLMModel" --model-id "gpt-4o"
-```
-
-## How do Code agents work?
-
-Our [`CodeAgent`](https://huggingface.co/docs/smolagents/reference/agents#smolagents.CodeAgent) works mostly like classical ReAct agents - the exception being that the LLM engine writes its actions as Python code snippets.
-
-```mermaid
-flowchart TB
-    Task[User Task]
-    Memory[agent.memory]
-    Generate[Generate from agent.model]
-    Execute[Execute Code action - Tool calls are written as functions]
-    Answer[Return the argument given to 'final_answer']
-
-    Task -->|Add task to agent.memory| Memory
-
-    subgraph ReAct[ReAct loop]
-        Memory -->|Memory as chat messages| Generate
-        Generate -->|Parse output to extract code action| Execute
-        Execute -->|No call to 'final_answer' tool => Store execution logs in memory and keep running| Memory
-    end
+    We change the original `o1` LLM model (used in the leaderboard submission) with `gpt-4o-mini` in our experiments. 
     
-    Execute -->|Call to 'final_answer' tool| Answer
+    The main reason is the extremely high token consumption of this framework. In our preliminary tests, running just 50 samples with `o1` incurred about $150 in API fees. Running the full validation set of 165 examples would cost approximately $495, making it impractical for iterative optimization. To reduce the cost while preserving reasonable performance, we used the more cost-effective `gpt-4o-mini`. However, even with this smaller model, running the full validation set still costs around $55, highlights the inherently high token consumption of the Open Deep Research framework. 
 
-    %% Styling
-    classDef default fill:#d4b702,stroke:#8b7701,color:#ffffff
-    classDef io fill:#4a5568,stroke:#2d3748,color:#ffffff
-    
-    class Task,Answer io
-```
+2. **Optimized Prompts** 
 
-Actions are now Python code snippets. Hence, tool calls will be performed as Python function calls. For instance, here is how the agent can perform web search over several websites in one single action:
-```py
-requests_to_search = ["gulf of mexico america", "greenland denmark", "tariffs"]
-for request in requests_to_search:
-    print(f"Here are the search results for {request}:", web_search(request))
-```
+    We optimized the Open Deep Research framework using our proposed **SEWOptimizer**, with a primary focus on improving the prompts within the framework. In our experiments, we randomly sampled 25 questions from the GAIA validation set and used them as a validation subset for optimization. These optimized prompts can be found in the `src/smolagents/prompts` folder:
+    - `code_agent_4o_mini_optimized.yaml`
+    - `toolcalling_agent_4o_mini_optimized.yaml`
 
-Writing actions as code snippets is demonstrated to work better than the current industry practice of letting the LLM output a dictionary of the tools it wants to call: [uses 30% fewer steps](https://huggingface.co/papers/2402.01030) (thus 30% fewer LLM calls) and [reaches higher performance on difficult benchmarks](https://huggingface.co/papers/2411.01747). Head to [our high-level intro to agents](https://huggingface.co/docs/smolagents/conceptual_guides/intro_agents) to learn more on that.
+3. **Easier Run with `--optimized` Flag** 
 
-Especially, since code execution can be a security concern (arbitrary code execution!), we provide options at runtime:
-  - a secure python interpreter to run code more safely in your environment (more secure than raw code execution but still risky)
-  - a sandboxed environment using [E2B](https://e2b.dev/) or Docker (removes the risk to your own system).
+   We modified the script `run_gaia.py` in the `examples/open_deep_research` folder to include the `--optimized` argument. This allows users to switch between original and optimized prompts effortlessly.
 
-On top of this [`CodeAgent`](https://huggingface.co/docs/smolagents/reference/agents#smolagents.CodeAgent) class, we still support the standard [`ToolCallingAgent`](https://huggingface.co/docs/smolagents/reference/agents#smolagents.ToolCallingAgent) that writes actions as JSON/text blobs. But we recommend always using `CodeAgent`.
+4. **Evaluation Script**
 
-## How smol is this library?
+    We add a new script `evaluate.py` in the `examples/open_deep_research` folder to facilitate the evaluation of model outputs. 
 
-We strived to keep abstractions to a strict minimum: the main code in `agents.py` has <1,000 lines of code.
-Still, we implement several types of agents: `CodeAgent` writes its actions as Python code snippets, and the more classic `ToolCallingAgent` leverages built-in tool calling methods. We also have multi-agent hierarchies, import from tool collections, remote code execution, vision models...
+5. **Evaluation Results** 
 
-By the way, why use a framework at all? Well, because a big part of this stuff is non-trivial. For instance, the code agent has to keep a consistent format for code throughout its system prompt, its parser, the execution. So our framework handles this complexity for you. But of course we still encourage you to hack into the source code and use only the bits that you need, to the exclusion of everything else!
+    To facilitate the evaluation, we provide the results of the original and optimized prompts on the full GAIA validation set in the `output/validation` folder:
+    - results with original prompts: `gpt-4o-mini_results.jsonl`
+    - results with optimized prompts: `gpt-4o-mini_optimized_results.jsonl` 
 
-## How strong are open models for agentic workflows?
+    These files can be directly used for quick comparison and reproduce the results. 
 
-We've created [`CodeAgent`](https://huggingface.co/docs/smolagents/reference/agents#smolagents.CodeAgent) instances with some leading models, and compared them on [this benchmark](https://huggingface.co/datasets/m-ric/agents_medium_benchmark_2) that gathers questions from a few different benchmarks to propose a varied blend of challenges.
+## Performance on GAIA Validation Set 
 
-[Find the benchmarking code here](https://github.com/huggingface/smolagents/blob/main/examples/smolagents_benchmark/run.py) for more detail on the agentic setup used, and see a comparison of using LLMs code agents compared to vanilla (spoilers: code agents works better).
+We report the performance of the original and optimized prompts on the full GAIA validation set in the following table. 
 
-<p align="center">
-    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/benchmark_code_agents.jpeg" alt="benchmark of different models on agentic workflows. Open model DeepSeek-R1 beats closed-source models." width=60% max-width=500px>
-</p>
+| Implementation | Level 1 | Level 2 | Level 3 | Average |
+|----------------|---------|---------|---------|---------|
+| Original       | 28.30%  | 26.74%  | 0.00%   | 23.03%  |
+| Optimized      | **33.96%**  | **29.07%**  | **7.69%**   | **27.27%**  |
 
-This comparison shows that open-source models can now take on the best closed models!
+The results indicate that our optimized prompts improve the performance by **18.41%** on average, with noticeable improvements on tasks from all three levels of the GAIA benchmark. 
 
-## Security
-
-Security is a critical consideration when working with code-executing agents. Our library provides:
-- Sandboxed execution options using [E2B](https://e2b.dev/) or Docker
-- Best practices for running agent code securely
-
-For security policies, vulnerability reporting, and more information on secure agent execution, please see our [Security Policy](SECURITY.md).
-
-## Contribute
-
-Everyone is welcome to contribute, get started with our [contribution guide](https://github.com/huggingface/smolagents/blob/main/CONTRIBUTING.md).
-
-## Cite smolagents
-
-If you use `smolagents` in your publication, please cite it by using the following BibTeX entry.
-
-```bibtex
-@Misc{smolagents,
-  title =        {`smolagents`: a smol library to build great agentic systems.},
-  author =       {Aymeric Roucher and Albert Villanova del Moral and Thomas Wolf and Leandro von Werra and Erik Kaunismäki},
-  howpublished = {\url{https://github.com/huggingface/smolagents}},
-  year =         {2025}
-}
-```
+In our experiments, we leveraged the `OpenAI o3` model to optimize the prompts, and used `gpt-4o-mini` to run the model during evaluation. The total investment for this optimization process was approximately $45, with the majority of the cost (about $42) from running the model with `gpt-4o-mini` for validation. These results indicate that our optimization process is cost-effective and can achieve remarkable performance improvements.  

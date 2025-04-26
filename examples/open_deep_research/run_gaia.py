@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import yaml
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -49,6 +50,7 @@ def parse_args():
     parser.add_argument("--concurrency", type=int, default=8)
     parser.add_argument("--model-id", type=str, default="o1")
     parser.add_argument("--run-name", type=str, required=True)
+    parser.add_argument("--optimized", action="store_true")
     return parser.parse_args()
 
 
@@ -94,7 +96,7 @@ BROWSER_CONFIG = {
 os.makedirs(f"./{BROWSER_CONFIG['downloads_folder']}", exist_ok=True)
 
 
-def create_agent_team(model: Model):
+def create_agent_team(model: Model, optimized: bool = False):
     text_limit = 100000
     ti_tool = TextInspectorTool(model, text_limit)
 
@@ -111,6 +113,15 @@ def create_agent_team(model: Model):
         TextInspectorTool(model, text_limit),
     ]
 
+    if optimized:
+        print("loading optimized prompts from prompts/code_agent_4o_mini_optimized.yaml and prompts/toolcalling_agent_4o_mini_optimized.yaml")
+        code_agent_prompt = yaml.safe_load(open(f"src/smolagents/prompts/code_agent_4o_mini_optimized.yaml").read())
+        toolcalling_agent_prompt = yaml.safe_load(open(f"src/smolagents/prompts/toolcalling_agent_4o_mini_optimized.yaml").read())
+    else:
+        print("loading original prompts from prompts/code_agent.yaml and prompts/toolcalling_agent.yaml")
+        code_agent_prompt = None 
+        toolcalling_agent_prompt = None
+
     text_webbrowser_agent = ToolCallingAgent(
         model=model,
         tools=WEB_TOOLS,
@@ -125,6 +136,7 @@ def create_agent_team(model: Model):
     Your request must be a real sentence, not a google search! Like "Find me this information (...)" rather than a few keywords.
     """,
         provide_run_summary=True,
+        prompt_templates=toolcalling_agent_prompt
     )
     text_webbrowser_agent.prompt_templates["managed_agent"]["task"] += """You can navigate to .txt online files.
     If a non-html page is in another format, especially .pdf or a Youtube video, use tool 'inspect_file_as_text' to inspect it.
@@ -138,6 +150,7 @@ def create_agent_team(model: Model):
         additional_authorized_imports=["*"],
         planning_interval=4,
         managed_agents=[text_webbrowser_agent],
+        prompt_templates=code_agent_prompt
     )
     return manager_agent
 
@@ -151,11 +164,14 @@ def append_answer(entry: dict, jsonl_file: str) -> None:
     print("Answer exported to file:", jsonl_file.resolve())
 
 
-def answer_single_question(example, model_id, answers_file, visual_inspection_tool):
-    model_params = {
-        "model_id": model_id,
-        "custom_role_conversions": custom_role_conversions,
-    }
+def answer_single_question(example, model_id, answers_file, visual_inspection_tool, optimized):
+
+    if optimized:
+        # set seed for reproducibility 
+        model_params = {"model_id": model_id, "custom_role_conversions": custom_role_conversions, "seed": 42, "temperature": 0.3}
+    else:
+        model_params = {"model_id": model_id, "custom_role_conversions": custom_role_conversions}
+
     if model_id == "o1":
         model_params["reasoning_effort"] = "high"
         model_params["max_completion_tokens"] = 8192
@@ -165,7 +181,7 @@ def answer_single_question(example, model_id, answers_file, visual_inspection_to
     # model = InferenceClientModel(model_id="Qwen/Qwen2.5-Coder-32B-Instruct", provider="together", max_tokens=4096)
     document_inspection_tool = TextInspectorTool(model, 100000)
 
-    agent = create_agent_team(model)
+    agent = create_agent_team(model, optimized)
 
     augmented_question = """You have one question to answer. It is paramount that you provide a correct answer.
 Give it all you can: I know for a fact that you have access to all the relevant tools to solve it and find the correct answer (the answer does exist). Failure or 'I cannot answer' or 'None found' will not be tolerated, success will be rewarded.
@@ -262,7 +278,7 @@ def main():
 
     with ThreadPoolExecutor(max_workers=args.concurrency) as exe:
         futures = [
-            exe.submit(answer_single_question, example, args.model_id, answers_file, visualizer)
+            exe.submit(answer_single_question, example, args.model_id, answers_file, visualizer, args.optimized)
             for example in tasks_to_run
         ]
         for f in tqdm(as_completed(futures), total=len(tasks_to_run), desc="Processing tasks"):

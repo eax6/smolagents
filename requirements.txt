@@ -1,0 +1,72 @@
+# Core dependencies
+huggingface-hub>=0.28.0
+requests>=2.32.3
+rich>=13.9.4
+jinja2>=3.1.4
+pillow>=11.0.0
+markdownify>=0.14.1
+duckduckgo-search>=6.3.7
+python-dotenv
+
+# Optional groups used in [project.optional-dependencies.dev], excluding vllm
+# torch group
+torch
+torchvision
+numpy>=1.21.2
+
+# audio group
+soundfile
+
+# docker group
+docker>=7.1.0
+websocket-client
+
+# e2b group
+e2b-code-interpreter>=1.0.3
+
+# gradio group
+gradio>=5.13.2
+
+# litellm group
+litellm>=1.60.2
+
+# mcp group
+mcpadapt>=0.0.19
+mcp
+
+# mlx-lm group
+mlx-lm
+
+# openai group
+openai>=1.58.1
+
+# telemetry group
+arize-phoenix
+opentelemetry-sdk
+opentelemetry-exporter-otlp
+openinference-instrumentation-smolagents>=0.1.4
+
+# transformers group
+accelerate
+transformers>=4.0.0
+
+# vision group
+helium
+selenium
+
+# bedrock group
+boto3>=1.36.18
+
+# quality group
+ruff>=0.9.0
+
+# test group
+ipython>=8.31.0
+pandas>=2.2.3
+pytest>=8.1.0
+pytest-datadir
+rank-bm25
+Wikipedia-API>=0.8.1
+
+# dev extras
+sqlalchemy
