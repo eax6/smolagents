@@ -4,12 +4,18 @@
 
 ## Performance on GAIA Validation Set 
 
-We optimized the Open Deep Research framework using our proposed **SEWOptimizer**, with a primary focus on improving the prompts within the framework. We report the performance of the original and optimized prompts on the full GAIA validation set in the following table. 
+We optimized the Open Deep Research framework using our proposed **SEW**(**S**elf-**E**volving **W**orkflow) optimizer, with a primary focus on improving the prompts within the framework. The performance of Open Deep Research with original and optimized prompts on the full GAIA validation set is shown in the following figure:
 
-| Implementation | Level 1 | Level 2 | Level 3 | Average |
+<figure>
+  <img src="result_comparison.png" alt="Performance comparison between original and optimized Open Deep Research on the full GAIA validation set">
+  <figcaption>Figure 1: Performance comparison between original and optimized Open Deep Research on the full GAIA validation set</figcaption>
+</figure>
+
+
+<!-- | Implementation | Level 1 | Level 2 | Level 3 | Average |
 |----------------|---------|---------|---------|---------|
 | Original       | 28.30%  | 26.74%  | 0.00%   | 23.03%  |
-| Optimized      | **33.96%**  | **29.07%**  | **7.69%**   | **27.27%**  |
+| Optimized      | **33.96%**  | **29.07%**  | **7.69%**   | **27.27%**  | -->
 
 The results indicate that our optimized prompts improve the performance by **18.41%** on average, with noticeable improvements on tasks from all three levels of the GAIA benchmark. 
 
@@ -22,7 +28,7 @@ We chose Open Deep Research because it is **one of the few open-source, runnable
 
 <figure>
   <img src="image.png" alt="GAIA Leaderboard showing Open Deep Research performance and ranking among other submissions">
-  <figcaption>Figure 1: GAIA Leaderboard showing Open Deep Research performance and ranking among other submissions</figcaption>
+  <figcaption>Figure 2: GAIA Leaderboard showing Open Deep Research performance and ranking among other submissions</figcaption>
 </figure>
 
 ## What We Changed 
@@ -57,3 +63,38 @@ We made the following modifications to the original framework:
 
     These files can be directly used for quick comparison and reproduce the results. 
 
+
+## Reproducing Results 
+
+### Setup 
+
+Follow the instructions in the `examples/open_deep_research` folder to setup the environment. Then create a file `.env` with the following content:
+
+```
+OPENAI_API_KEY=your_openai_api_key
+SERPER_API_KEY=your_serper_api_key 
+```
+
+### Reproducing Original Implementation
+
+Run the following commands to reproduce the original Open Deep Research implementation on the validation set of the GAIA benchmark: 
+
+```bash
+python run_gaia.py --concurrency 10 --model-id gpt-4o-mini --run-name gpt-4o-mini_results 
+```
+
+### Running Our Optimized Implementation
+
+Run the following command to reproduce our optimized implementation on the validation set of the GAIA benchmark: 
+
+```bash
+cd examples/open_deep_research
+python run_gaia.py --concurrency 10 --model-id gpt-4o-mini --run-name gpt-4o-mini_optimized_results --optimized
+```
+
+### Evaluation 
+
+Run the following command to evaluate the performance:
+```bash
+python evaluate.py --output_file /path/to/your/results.jsonl
+```

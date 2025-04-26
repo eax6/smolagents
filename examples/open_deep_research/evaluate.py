@@ -1,7 +1,7 @@
 import json 
 import numpy as np 
 import argparse  
-from examples.open_deep_research.scripts.gaia_scorer import question_scorer 
+from scripts.gaia_scorer import question_scorer 
 
 
 def parse_args():

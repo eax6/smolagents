@@ -184,6 +184,7 @@ def answer_single_question(example, model_id, answers_file, visual_inspection_to
     document_inspection_tool = TextInspectorTool(model, 100000)
 
     agent = create_agent_team(model, optimized)
+    from pdb import set_trace; set_trace() 
 
     augmented_question = """You have one question to answer. It is paramount that you provide a correct answer.
 Give it all you can: I know for a fact that you have access to all the relevant tools to solve it and find the correct answer (the answer does exist). Failure or 'I cannot answer' or 'None found' will not be tolerated, success will be rewarded.
@@ -278,16 +279,16 @@ def main():
     answers_file = f"output/{SET}/{args.run_name}.jsonl"
     tasks_to_run = get_examples_to_answer(answers_file, eval_ds)
 
-    with ThreadPoolExecutor(max_workers=args.concurrency) as exe:
-        futures = [
-            exe.submit(answer_single_question, example, args.model_id, answers_file, visualizer, args.optimized)
-            for example in tasks_to_run
-        ]
-        for f in tqdm(as_completed(futures), total=len(tasks_to_run), desc="Processing tasks"):
-            f.result()
+    # with ThreadPoolExecutor(max_workers=args.concurrency) as exe:
+    #     futures = [
+    #         exe.submit(answer_single_question, example, args.model_id, answers_file, visualizer, args.optimized)
+    #         for example in tasks_to_run
+    #     ]
+    #     for f in tqdm(as_completed(futures), total=len(tasks_to_run), desc="Processing tasks"):
+    #         f.result()
 
-    # for example in tasks_to_run:
-    #     answer_single_question(example, args.model_id, answers_file, visualizer, args.optimized)
+    for example in tasks_to_run:
+        answer_single_question(example, args.model_id, answers_file, visualizer, args.optimized)
     print("All tasks processed.")
 
 
