@@ -20,6 +20,11 @@ In our experiments, we leveraged the `OpenAI o3` model to optimize the prompts, 
 
 We chose Open Deep Research because it is **one of the few open-source, runnable frameworks on the [GAIA leaderboard](https://huggingface.co/spaces/gaia-benchmark/leaderboard)**. Most other submissions are either closed-source or lack runnable code. Alongside [OWL](https://github.com/camel-ai/owl) , Open Deep Research offers a strong baseline for evaluating and improving web-based research agents. While OWL is optimized in another teammate's repository, this work focuses on optimizing Open Deep Research for the GAIA leaderboard.  
 
+<figure>
+  <img src="image.png" alt="GAIA Leaderboard showing Open Deep Research performance and ranking among other submissions">
+  <figcaption>Figure 1: GAIA Leaderboard showing Open Deep Research performance and ranking among other submissions</figcaption>
+</figure>
+
 ## What We Changed 
 
 We made the following modifications to the original framework:
